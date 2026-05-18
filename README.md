@@ -1,3 +1,6 @@
+# Deployed URL
+https://group-project-bug-tracker-front-end-group-8-160c445v0.vercel.app/
+
 # AI Workflows
 
 ## Christina
