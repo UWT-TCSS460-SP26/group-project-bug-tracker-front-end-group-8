@@ -37,7 +37,8 @@ export default function BugReportPage() {
     if (formData.reporterEmail && formData.reporterEmail.trim() !== '') payload.reporterEmail = formData.reporterEmail;
 
     try {
-      const response = await fetch('/api/v1/issues', {
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL;
+      const response = await fetch(`${apiUrl}/v1/issues`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
