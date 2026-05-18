@@ -15,3 +15,6 @@ rewrite. This solved the server issues.
 Finally, I prompted it to create a `.gitignore` file for the project, and create tests, located within
 `test/page.test.js`. It took a few iterations of prompting to solve issues with failing tests related 
 to `TestingLibraryElementError` errors.
+Once everything worked locally, I prompted the agent with the "As a frontend developer, I want the 
+form to talk to our deployed API (not localhost) so that the deployed FE actually works end-to-end" 
+user story to ensure the app will work if we decide to deploy this implementation with Vercel. 

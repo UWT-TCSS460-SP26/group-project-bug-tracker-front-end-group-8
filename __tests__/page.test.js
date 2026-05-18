@@ -8,6 +8,11 @@ global.fetch = jest.fn();
 describe('BugReportPage', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    process.env.NEXT_PUBLIC_API_URL = 'https://mock-api.example.com';
+  });
+
+  afterAll(() => {
+    delete process.env.NEXT_PUBLIC_API_URL;
   });
 
   it('renders the form correctly', () => {
@@ -39,7 +44,7 @@ describe('BugReportPage', () => {
       expect(screen.getByText(/your bug report has been successfully submitted/i)).toBeInTheDocument();
     });
 
-    expect(fetch).toHaveBeenCalledWith('/api/v1/issues', expect.objectContaining({
+    expect(fetch).toHaveBeenCalledWith('https://mock-api.example.com/v1/issues', expect.objectContaining({
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
