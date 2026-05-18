@@ -1,5 +1,5 @@
 # Deployed URL
-https://group-project-bug-tracker-front-end-group-8-160c445v0.vercel.app/
+https://group-project-bug-tracker-front-end-group-8-qu97i96sj.vercel.app/
 
 # AI Workflows
 
