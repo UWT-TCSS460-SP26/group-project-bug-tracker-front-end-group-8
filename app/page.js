@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 const ISSUES_ENDPOINT = "/api/issues";
 
@@ -23,7 +23,36 @@ export default function ReportBugPage() {
   const [globalError, setGlobalError] = useState("");
   const [submittedId, setSubmittedId] = useState(null);
   const [submitting, setSubmitting] = useState(false);
+  const [theme, setTheme] = useState("dark");
+  const [copied, setCopied] = useState(false);
   const successRef = useRef(null);
+
+  useEffect(() => {
+    const stored = typeof window !== "undefined" ? localStorage.getItem("theme") : null;
+    const prefersLight =
+      typeof window !== "undefined" &&
+      window.matchMedia &&
+      window.matchMedia("(prefers-color-scheme: light)").matches;
+    const initial = stored || (prefersLight ? "light" : "dark");
+    setTheme(initial);
+    document.documentElement.setAttribute("data-theme", initial);
+  }, []);
+
+  const toggleTheme = () => {
+    const next = theme === "dark" ? "light" : "dark";
+    setTheme(next);
+    document.documentElement.setAttribute("data-theme", next);
+    try { localStorage.setItem("theme", next); } catch {}
+  };
+
+  const copyTicket = async () => {
+    if (submittedId == null) return;
+    try {
+      await navigator.clipboard.writeText(String(submittedId));
+      setCopied(true);
+      setTimeout(() => setCopied(false), 1500);
+    } catch {}
+  };
 
   const onChange = (e) => {
     const { name, value } = e.target;
@@ -119,6 +148,17 @@ export default function ReportBugPage() {
 
   return (
     <main>
+      <div className="topbar">
+        <button
+          type="button"
+          className="theme-toggle"
+          onClick={toggleTheme}
+          aria-label={`Switch to ${theme === "dark" ? "light" : "dark"} mode`}
+        >
+          {theme === "dark" ? "☀ Light" : "🌙 Dark"}
+        </button>
+      </div>
+
       <h1>Report a Bug</h1>
       <p className="subtitle">
         Tell us what broke. No login required — this report goes straight to the team.
@@ -131,7 +171,16 @@ export default function ReportBugPage() {
           role="status"
           className="alert alert-success"
         >
-          Thanks! Your report was filed{submittedId ? ` as issue #${submittedId}` : ""}.
+          <div><strong>Thanks!</strong> Your report was filed.</div>
+          {submittedId != null && (
+            <div className="ticket">
+              <span>Ticket</span>
+              <span className="ticket-number">#{submittedId}</span>
+              <button type="button" className="ticket-copy" onClick={copyTicket}>
+                {copied ? "Copied!" : "Copy"}
+              </button>
+            </div>
+          )}
         </div>
       )}
 

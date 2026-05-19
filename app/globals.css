@@ -1,12 +1,61 @@
 * { box-sizing: border-box; }
 
+:root {
+  --bg: #0f172a;
+  --surface: #1e293b;
+  --border: #334155;
+  --text: #e2e8f0;
+  --text-muted: #94a3b8;
+  --input-bg: #0f172a;
+  --input-border: #475569;
+  --input-text: #f1f5f9;
+  --accent: #38bdf8;
+  --accent-text: #0f172a;
+  --accent-ring: rgba(56, 189, 248, 0.25);
+  --danger: #f87171;
+  --danger-text: #fca5a5;
+  --success-bg: #064e3b;
+  --success-border: #10b981;
+  --success-text: #d1fae5;
+  --error-bg: #7f1d1d;
+  --error-border: #ef4444;
+  --error-text: #fee2e2;
+  --code-bg: #0f172a;
+  --shadow: 0 1px 2px rgba(0,0,0,0.4);
+}
+
+:root[data-theme="light"] {
+  --bg: #f8fafc;
+  --surface: #ffffff;
+  --border: #e2e8f0;
+  --text: #0f172a;
+  --text-muted: #475569;
+  --input-bg: #ffffff;
+  --input-border: #cbd5e1;
+  --input-text: #0f172a;
+  --accent: #0284c7;
+  --accent-text: #ffffff;
+  --accent-ring: rgba(2, 132, 199, 0.2);
+  --danger: #dc2626;
+  --danger-text: #b91c1c;
+  --success-bg: #ecfdf5;
+  --success-border: #10b981;
+  --success-text: #065f46;
+  --error-bg: #fef2f2;
+  --error-border: #ef4444;
+  --error-text: #991b1b;
+  --code-bg: #f1f5f9;
+  --shadow: 0 1px 3px rgba(15, 23, 42, 0.08);
+}
+
 html, body {
   margin: 0;
   padding: 0;
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-  background: #0f172a;
-  color: #e2e8f0;
+  background: var(--bg);
+  color: var(--text);
   min-height: 100vh;
+  transition: background-color 0.18s ease, color 0.18s ease;
 }
 
 main {
@@ -15,21 +64,44 @@ main {
   padding: 48px 24px;
 }
 
+.topbar {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 16px;
+}
+
+.theme-toggle {
+  background: var(--surface);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 6px 14px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.theme-toggle:hover {
+  border-color: var(--accent);
+}
+
 h1 {
   font-size: 28px;
   margin: 0 0 8px;
 }
 
 .subtitle {
-  color: #94a3b8;
+  color: var(--text-muted);
   margin: 0 0 32px;
 }
 
 .card {
-  background: #1e293b;
-  border: 1px solid #334155;
+  background: var(--surface);
+  border: 1px solid var(--border);
   border-radius: 12px;
   padding: 28px;
+  box-shadow: var(--shadow);
 }
 
 .field {
@@ -45,17 +117,17 @@ h1 {
 }
 
 .field .required {
-  color: #f87171;
+  color: var(--danger);
   margin-left: 4px;
 }
 
 .field input,
 .field textarea {
-  background: #0f172a;
-  border: 1px solid #475569;
+  background: var(--input-bg);
+  border: 1px solid var(--input-border);
   border-radius: 8px;
   padding: 10px 12px;
-  color: #f1f5f9;
+  color: var(--input-text);
   font: inherit;
   font-size: 15px;
 }
@@ -63,8 +135,8 @@ h1 {
 .field input:focus,
 .field textarea:focus {
   outline: none;
-  border-color: #38bdf8;
-  box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.25);
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-ring);
 }
 
 .field textarea {
@@ -74,25 +146,25 @@ h1 {
 
 .field.invalid input,
 .field.invalid textarea {
-  border-color: #f87171;
+  border-color: var(--danger);
 }
 
 .field-error {
-  color: #fca5a5;
+  color: var(--danger-text);
   font-size: 13px;
   margin-top: 6px;
 }
 
 .hint {
-  color: #94a3b8;
+  color: var(--text-muted);
   font-size: 12px;
   margin-top: 4px;
 }
 
 button[type="submit"] {
   width: 100%;
-  background: #38bdf8;
-  color: #0f172a;
+  background: var(--accent);
+  color: var(--accent-text);
   border: none;
   border-radius: 8px;
   padding: 12px;
@@ -115,13 +187,47 @@ button[type="submit"]:disabled {
 }
 
 .alert-success {
-  background: #064e3b;
-  border: 1px solid #10b981;
-  color: #d1fae5;
+  background: var(--success-bg);
+  border: 1px solid var(--success-border);
+  color: var(--success-text);
 }
 
 .alert-error {
-  background: #7f1d1d;
-  border: 1px solid #ef4444;
-  color: #fee2e2;
+  background: var(--error-bg);
+  border: 1px solid var(--error-border);
+  color: var(--error-text);
+}
+
+.ticket {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-top: 10px;
+}
+
+.ticket-number {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 22px;
+  font-weight: 700;
+  padding: 6px 12px;
+  background: var(--code-bg);
+  border: 1px solid var(--success-border);
+  border-radius: 8px;
+  user-select: all;
+}
+
+.ticket-copy {
+  background: transparent;
+  color: inherit;
+  border: 1px solid currentColor;
+  border-radius: 6px;
+  padding: 4px 10px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  opacity: 0.75;
+}
+
+.ticket-copy:hover {
+  opacity: 1;
 }
