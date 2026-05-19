@@ -24,7 +24,6 @@ export default function ReportBugPage() {
   const [submittedId, setSubmittedId] = useState(null);
   const [submitting, setSubmitting] = useState(false);
   const [theme, setTheme] = useState("dark");
-  const [copied, setCopied] = useState(false);
   const successRef = useRef(null);
 
   useEffect(() => {
@@ -43,15 +42,6 @@ export default function ReportBugPage() {
     setTheme(next);
     document.documentElement.setAttribute("data-theme", next);
     try { localStorage.setItem("theme", next); } catch {}
-  };
-
-  const copyTicket = async () => {
-    if (submittedId == null) return;
-    try {
-      await navigator.clipboard.writeText(String(submittedId));
-      setCopied(true);
-      setTimeout(() => setCopied(false), 1500);
-    } catch {}
   };
 
   const onChange = (e) => {
@@ -171,16 +161,7 @@ export default function ReportBugPage() {
           role="status"
           className="alert alert-success"
         >
-          <div><strong>Thanks!</strong> Your report was filed.</div>
-          {submittedId != null && (
-            <div className="ticket">
-              <span>Ticket</span>
-              <span className="ticket-number">#{submittedId}</span>
-              <button type="button" className="ticket-copy" onClick={copyTicket}>
-                {copied ? "Copied!" : "Copy"}
-              </button>
-            </div>
-          )}
+          <strong>Thanks!</strong> Your report was filed{submittedId ? ` as issue #${submittedId}` : ""}.
         </div>
       )}
 

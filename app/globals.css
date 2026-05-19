@@ -198,36 +198,3 @@ button[type="submit"]:disabled {
   color: var(--error-text);
 }
 
-.ticket {
-  display: flex;
-  align-items: center;
-  gap: 14px;
-  margin-top: 10px;
-}
-
-.ticket-number {
-  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
-  font-size: 22px;
-  font-weight: 700;
-  padding: 6px 12px;
-  background: var(--code-bg);
-  border: 1px solid var(--success-border);
-  border-radius: 8px;
-  user-select: all;
-}
-
-.ticket-copy {
-  background: transparent;
-  color: inherit;
-  border: 1px solid currentColor;
-  border-radius: 6px;
-  padding: 4px 10px;
-  font-size: 12px;
-  font-weight: 600;
-  cursor: pointer;
-  opacity: 0.75;
-}
-
-.ticket-copy:hover {
-  opacity: 1;
-}
