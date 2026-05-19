@@ -4,6 +4,8 @@ https://group-project-bug-tracker-front-end-mu.vercel.app/
 # AI Workflows
 
 ## Christina
+To start with I added the OpenAPI docs to my branch off this repository, along with a `sprint-5.md` file containing the user stories the agent needed to understand the requirements of this sprint. 
+I used the Gemini Code Assist plugin available on WebStorm. 
 My first prompt was "Create a Next.js app with a single public form that posts to POST /issues. 
 Read openapi.yaml and sprint-5.md to understand the backend API and what features are requested."
 It produced a Next.js app that rendered properly when I tested locally:
