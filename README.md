@@ -1,7 +1,13 @@
 # Bug Tracker FE — Group 8 (mansurBranchFE)
 
 A single-page Next.js (App Router) app that lets anyone file a bug report
-against our team's API. No auth — POSTs straight to `POST /v1/issues`.
+against our team's API. No auth — POSTs to the BE's `POST /v1/issues`.
+
+**Live:** https://bug-tracker-fe-mansur.vercel.app
+
+The browser posts to a same-origin `/api/issues` path, which Next.js rewrites
+server-side to `${NEXT_PUBLIC_API_URL}/v1/issues`. This sidesteps CORS so the
+deployed FE works without touching the BE's allowlist.
 
 ## Stack
 
@@ -23,10 +29,10 @@ Open http://localhost:3000.
 
 | Name | Example | Used by |
 | --- | --- | --- |
-| `NEXT_PUBLIC_API_URL` | `https://tcss460-team-8-api.onrender.com` | `app/page.js` — base URL the form POSTs to. The form appends `/v1/issues`. |
+| `NEXT_PUBLIC_API_URL` | `https://tcss460-team-8-api.onrender.com` | `next.config.js` — rewrite target. The browser hits `/api/issues`, Next rewrites it to `${NEXT_PUBLIC_API_URL}/v1/issues`. |
 
-No URLs are hardcoded in component code. Set this on Vercel under
-Project Settings → Environment Variables for production.
+No URLs are hardcoded in component code. Already set on Vercel for Production
+and Development.
 
 ## Deploy (Vercel)
 

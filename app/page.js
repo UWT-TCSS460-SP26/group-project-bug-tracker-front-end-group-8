@@ -2,7 +2,7 @@
 
 import { useRef, useState } from "react";
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL?.replace(/\/+$/, "") || "";
+const ISSUES_ENDPOINT = "/api/issues";
 
 const LIMITS = {
   title: 200,
@@ -71,13 +71,6 @@ export default function ReportBugPage() {
     }
     setErrors({});
 
-    if (!API_BASE) {
-      setGlobalError(
-        "The form isn't configured yet — NEXT_PUBLIC_API_URL is missing. Please contact the team."
-      );
-      return;
-    }
-
     const payload = {
       title: form.title.trim(),
       description: form.description.trim(),
@@ -87,7 +80,7 @@ export default function ReportBugPage() {
 
     setSubmitting(true);
     try {
-      const res = await fetch(`${API_BASE}/v1/issues`, {
+      const res = await fetch(ISSUES_ENDPOINT, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
