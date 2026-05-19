@@ -35,7 +35,7 @@ I was satisfied with the bug tracker Claude first produced as long as it functio
 
 If I did this over again, I don't know if I would have bothered with Claude Code. There was a lot of difficulty connecting it to github with the proper authentication and I only had four context files that would have been easy to copy-paste into the Claude browser. However, it was nice that whole frontend was setup for me and all I had to do was pull it from github onto my local machine. Without any Next.js experience, this may have been challenging to setup on my own. 
 
-## AI Workflow, Mansur
+## Mansur
 ### Context I prepared before prompting
 
 I started in a clean working directory on `mansurBranchFE`. Before I typed
