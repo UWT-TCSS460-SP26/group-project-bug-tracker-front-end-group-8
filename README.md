@@ -1,43 +1,61 @@
-# Deployed URL
-https://group-project-bug-tracker-front-end-mu.vercel.app/
+# Bug Tracker FE, Group 8 (mansurBranchFE)
 
-# AI Workflows
+A single page Next.js (App Router) app that lets anyone file a bug report
+against our team's API. No auth. The form POSTs to the BE's `POST /v1/issues`.
 
-## Christina
-To start with I added the OpenAPI docs to my branch off this repository, along with a `sprint-5.md` file containing the user stories the agent needed to understand the requirements of this sprint. 
-I used the Gemini Code Assist plugin available on WebStorm. 
-My first prompt was "Create a Next.js app with a single public form that posts to POST /issues. 
-Read openapi.yaml and sprint-5.md to understand the backend API and what features are requested."
-It produced a Next.js app that rendered properly when I tested locally:
-![img.png](christina_example.png)
-Error messages were user-friendly as specified in this sprint's user stories. However, the
-model assumed I was running the backend API locally, so the server connection was failing.
-To solve this, I pointed the agent to our team's backend web service, and it updated `app/page.js`
-to point to the deployed API. The connection was still failing, so I re-prompted to try to find
-a better solution. The agent rewrote `next.config.js` to proxy requests from the local dev server
-to the Render API to solve CORS issues, then updated the `fetch` URL in `app/page.js` to use the
-rewrite. This solved the server issues.
-Finally, I prompted it to create a `.gitignore` file for the project, and create tests, located within
-`test/page.test.js`. It took a few iterations of prompting to solve issues with failing tests related 
-to `TestingLibraryElementError` errors.
-Once everything worked locally, I prompted the agent with the "As a frontend developer, I want the 
-form to talk to our deployed API (not localhost) so that the deployed FE actually works end-to-end" 
-user story to ensure the app will work if we decide to deploy this implementation with Vercel. 
+**Live:** https://bug-tracker-fe-mansur.vercel.app
 
+The browser posts to a same origin `/api/issues` path, and Next.js rewrites
+that on the server to `${NEXT_PUBLIC_API_URL}/v1/issues`. That sidesteps CORS
+so the deployed FE works without anyone touching the BE's allowlist on Render.
 
-## Charlene
+## Stack
 
-I started by setting up my context. In an empty directory in github I added a sprint-5.md, the openapi.yaml and schema.prisma from our backend, and a README.md. The sprint-5.md was text copied and pasted from the sprint-5 instructions, but trimmed down to necessary information only. In the README.md, I put the backend URL and an example of our POST /issues request body.
+* Next.js 14 (App Router, JavaScript)
+* React 18
+* Plain CSS, no Tailwind, no UI library
 
-Once the context was setup, I directed Claude Code Web to this directory and gave it the following prompt: "Read these files. Build the Bug Tracker FE described in the sprint-5.md document against the API in the spec. The backend-openapi.yaml and backend-schema.prisma files are from our team's backend API that has the issues routes."
+## Environment variables
 
-![img.png](charlene_example.png)
+`NEXT_PUBLIC_API_URL` is the rewrite target. Example value:
+`https://tcss460-team-8-api.onrender.com`. The browser hits `/api/issues`,
+Next forwards it to `${NEXT_PUBLIC_API_URL}/v1/issues`. No URLs live in
+component code. The variable is already configured on Vercel for Production
+and Development.
 
-I was satisfied with the bug tracker Claude first produced as long as it functioned properly. After testing network-error, validation-error, and success cases, I was completely satisfied with this form. It looks clean, the messages are clear, and it functions as intended. I especially like how the respective required field is outlined red when the user tries to submit a form without it. The only other prompts I made were to get help setting up the CORS, so I could test the form.
+## Deploy (Vercel)
 
-If I did this over again, I don't know if I would have bothered with Claude Code. There was a lot of difficulty connecting it to github with the proper authentication and I only had four context files that would have been easy to copy-paste into the Claude browser. However, it was nice that whole frontend was setup for me and all I had to do was pull it from github onto my local machine. Without any Next.js experience, this may have been challenging to setup on my own. 
+1. Push this branch to GitHub.
+2. Import the repo on Vercel. The framework auto detects as Next.js.
+3. Add `NEXT_PUBLIC_API_URL` for Production and Preview.
+4. Deploy. Because the rewrite proxies the call server side, the BE's CORS
+   allowlist does not need to know about the Vercel origin.
 
-## Mansur
+## UI states
+
+* **Success.** 201 from the API. Green confirmation banner shows the new
+  issue id, the form clears, and focus moves to the banner.
+* **Validation failure.** 400 from the API. Inline red error under the
+  offending field (title, description, reproSteps, or reporterEmail). Inputs
+  keep their values so the user can fix and retry.
+* **Network or server failure.** Fetch throws or the API returns a non 201
+  status that isn't 400. Red banner with a calm message, inputs preserved.
+
+## Accessibility
+
+* Every field has a `<label htmlFor>` bound to its input.
+* Errors are linked via `aria-describedby` and inputs get `aria-invalid="true"`.
+* Success banner uses `role="status"` and receives focus on submit so screen
+  readers announce it.
+* Global error banner uses `role="alert"`.
+
+## AI Workflow, Mansur
+
+For Sprint 5 the course bar of "every member can explain every line" is
+paused. What I own this sprint is this writeup, the team's pick or merge
+decision, and a deployed FE that actually works against our API. The code
+itself came from an agent. The thinking about how to drive the agent is mine.
+
 ### Context I prepared before prompting
 
 I started in a clean working directory on `mansurBranchFE`. Before I typed
@@ -50,8 +68,6 @@ a single prompt I made sure the agent could find:
 
 I wanted to see how little prompting I could get away with if the context
 was solid. That mindset paid off. My prompts stayed short.
-
-![img.png](mansur_example.png)
 
 ### First prompt
 

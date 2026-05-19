@@ -1,200 +1,278 @@
 "use client";
 
-import { useState } from 'react';
+import { useEffect, useRef, useState } from "react";
 
-export default function BugReportPage() {
-  const [formData, setFormData] = useState({
-    title: '',
-    description: '',
-    reproSteps: '',
-    reporterEmail: '',
-  });
+const ISSUES_ENDPOINT = "/api/issues";
 
-  const [status, setStatus] = useState('idle'); // 'idle', 'submitting', 'success', 'error'
-  const [globalError, setGlobalError] = useState('');
-  const [fieldErrors, setFieldErrors] = useState({});
+const LIMITS = {
+  title: 200,
+  description: 5000,
+  reproSteps: 5000,
+};
 
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
-    // Clear inline error if user types
-    if (fieldErrors[name]) {
-      setFieldErrors(prev => ({ ...prev, [name]: null }));
-    }
+const initialForm = {
+  title: "",
+  description: "",
+  reproSteps: "",
+  reporterEmail: "",
+};
+
+export default function ReportBugPage() {
+  const [form, setForm] = useState(initialForm);
+  const [errors, setErrors] = useState({});
+  const [globalError, setGlobalError] = useState("");
+  const [submittedId, setSubmittedId] = useState(null);
+  const [submitting, setSubmitting] = useState(false);
+  const [theme, setTheme] = useState("dark");
+  const successRef = useRef(null);
+
+  useEffect(() => {
+    const stored = typeof window !== "undefined" ? localStorage.getItem("theme") : null;
+    const prefersLight =
+      typeof window !== "undefined" &&
+      window.matchMedia &&
+      window.matchMedia("(prefers-color-scheme: light)").matches;
+    const initial = stored || (prefersLight ? "light" : "dark");
+    setTheme(initial);
+    document.documentElement.setAttribute("data-theme", initial);
+  }, []);
+
+  const toggleTheme = () => {
+    const next = theme === "dark" ? "light" : "dark";
+    setTheme(next);
+    document.documentElement.setAttribute("data-theme", next);
+    try { localStorage.setItem("theme", next); } catch {}
   };
 
-  const handleSubmit = async (e) => {
+  const onChange = (e) => {
+    const { name, value } = e.target;
+    setForm((f) => ({ ...f, [name]: value }));
+    if (errors[name]) setErrors((p) => ({ ...p, [name]: null }));
+  };
+
+  const clientValidate = () => {
+    const next = {};
+    if (!form.title.trim()) next.title = "Title is required.";
+    else if (form.title.length > LIMITS.title)
+      next.title = `Title must be ${LIMITS.title} characters or fewer.`;
+
+    if (!form.description.trim()) next.description = "Description is required.";
+    else if (form.description.length > LIMITS.description)
+      next.description = `Description must be ${LIMITS.description} characters or fewer.`;
+
+    if (form.reproSteps && form.reproSteps.length > LIMITS.reproSteps)
+      next.reproSteps = `Reproduction steps must be ${LIMITS.reproSteps} characters or fewer.`;
+
+    if (form.reporterEmail && !/^\S+@\S+\.\S+$/.test(form.reporterEmail))
+      next.reporterEmail = "Enter a valid email address.";
+
+    return next;
+  };
+
+  const mapServerError = (message) => {
+    const lower = (message || "").toLowerCase();
+    if (lower.includes("title")) return { title: message };
+    if (lower.includes("description")) return { description: message };
+    if (lower.includes("repro")) return { reproSteps: message };
+    if (lower.includes("email")) return { reporterEmail: message };
+    return null;
+  };
+
+  const onSubmit = async (e) => {
     e.preventDefault();
-    setStatus('submitting');
-    setGlobalError('');
-    setFieldErrors({});
+    setGlobalError("");
+    setSubmittedId(null);
+
+    const v = clientValidate();
+    if (Object.keys(v).length) {
+      setErrors(v);
+      return;
+    }
+    setErrors({});
 
     const payload = {
-      title: formData.title,
-      description: formData.description,
+      title: form.title.trim(),
+      description: form.description.trim(),
     };
-    if (formData.reproSteps && formData.reproSteps.trim() !== '') payload.reproSteps = formData.reproSteps;
-    if (formData.reporterEmail && formData.reporterEmail.trim() !== '') payload.reporterEmail = formData.reporterEmail;
+    if (form.reproSteps.trim()) payload.reproSteps = form.reproSteps.trim();
+    if (form.reporterEmail.trim()) payload.reporterEmail = form.reporterEmail.trim();
 
+    setSubmitting(true);
     try {
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL;
-      const response = await fetch(`${apiUrl}/v1/issues`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+      const res = await fetch(ISSUES_ENDPOINT, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
       });
 
-      if (response.ok) {
-        setStatus('success');
-        setFormData({ title: '', description: '', reproSteps: '', reporterEmail: '' });
-      } else if (response.status === 400) {
-        const data = await response.json().catch(() => ({}));
-        const errStr = data.error || 'Validation failed. Please check your inputs.';
-        setStatus('error');
-        
-        // Attempt to surface inline errors based on API message
-        const lowerErr = errStr.toLowerCase();
-        const newFieldErrors = {};
-        let mapped = false;
-
-        if (lowerErr.includes('title')) {
-          newFieldErrors.title = errStr;
-          mapped = true;
-        } else if (lowerErr.includes('description')) {
-          newFieldErrors.description = errStr;
-          mapped = true;
-        } else if (lowerErr.includes('email')) {
-          newFieldErrors.reporterEmail = errStr;
-          mapped = true;
-        }
-
-        if (mapped) {
-          setFieldErrors(newFieldErrors);
-        } else {
-          setGlobalError(errStr);
-        }
-      } else {
-        const data = await response.json().catch(() => ({}));
-        setStatus('error');
-        setGlobalError(data.error || 'An unexpected error occurred on the server. Please try again later.');
+      if (res.status === 201) {
+        const body = await res.json().catch(() => ({}));
+        const id = body?.data?.id ?? null;
+        setSubmittedId(id);
+        setForm(initialForm);
+        setTimeout(() => successRef.current?.focus(), 0);
+        return;
       }
-    } catch (error) {
-      setStatus('error');
-      setGlobalError('Failed to connect to the server. Your internet might be offline, or the API is currently unavailable. Please check your connection and try again.');
+
+      const body = await res.json().catch(() => ({}));
+      const message = body?.error || `Request failed with status ${res.status}.`;
+
+      if (res.status === 400) {
+        const mapped = mapServerError(message);
+        if (mapped) setErrors(mapped);
+        else setGlobalError(message);
+        return;
+      }
+
+      setGlobalError(
+        `Something went wrong on our end (HTTP ${res.status}). Your input is still here — try again in a moment.`
+      );
+    } catch (err) {
+      setGlobalError(
+        "Couldn't reach the server. Check your connection and try again — your text is preserved."
+      );
+    } finally {
+      setSubmitting(false);
     }
   };
 
   return (
-    <div style={{ maxWidth: '600px', margin: '60px auto', padding: '30px', backgroundColor: '#fff', borderRadius: '8px', boxShadow: '0 2px 8px rgba(0,0,0,0.1)' }}>
-      <h1 style={{ marginTop: 0, marginBottom: '20px' }}>File a Bug Report</h1>
-      
-      {status === 'success' && (
-        <div style={{ padding: '15px', backgroundColor: '#d4edda', color: '#155724', marginBottom: '20px', borderRadius: '5px', border: '1px solid #c3e6cb' }}>
-          <strong>Success!</strong> Your bug report has been successfully submitted. Thank you for your feedback.
+    <main>
+      <div className="topbar">
+        <button
+          type="button"
+          className="theme-toggle"
+          onClick={toggleTheme}
+          aria-label={`Switch to ${theme === "dark" ? "light" : "dark"} mode`}
+        >
+          {theme === "dark" ? "☀ Light" : "🌙 Dark"}
+        </button>
+      </div>
+
+      <h1>Report a Bug</h1>
+      <p className="subtitle">
+        Tell us what broke. No login required — this report goes straight to the team.
+      </p>
+
+      {submittedId !== null && (
+        <div
+          ref={successRef}
+          tabIndex={-1}
+          role="status"
+          className="alert alert-success"
+        >
+          <strong>Thanks!</strong> Your report was filed{submittedId ? ` as issue #${submittedId}` : ""}.
         </div>
       )}
 
       {globalError && (
-        <div style={{ padding: '15px', backgroundColor: '#f8d7da', color: '#721c24', marginBottom: '20px', borderRadius: '5px', border: '1px solid #f5c6cb' }}>
+        <div role="alert" className="alert alert-error">
           {globalError}
         </div>
       )}
 
-      <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-        <div>
-          <label htmlFor="title" style={{ display: 'block', marginBottom: '8px', fontWeight: 'bold' }}>
-            Title *
-          </label>
-          <input
-            id="title"
-            type="text"
-            name="title"
-            value={formData.title}
-            onChange={handleChange}
-            required
-            maxLength={200}
-            style={{ width: '100%', padding: '10px', boxSizing: 'border-box', border: fieldErrors.title ? '1px solid #dc3545' : '1px solid #ccc', borderRadius: '4px' }}
-            disabled={status === 'submitting'}
-            placeholder="Brief summary of the issue"
-          />
-          {fieldErrors.title && <div style={{ color: '#dc3545', fontSize: '14px', marginTop: '5px' }}>{fieldErrors.title}</div>}
-        </div>
+      <form className="card" onSubmit={onSubmit} noValidate>
+        <Field
+          label="Title"
+          name="title"
+          required
+          value={form.title}
+          error={errors.title}
+          onChange={onChange}
+          maxLength={LIMITS.title}
+          placeholder="Short summary of the bug"
+        />
 
-        <div>
-          <label htmlFor="description" style={{ display: 'block', marginBottom: '8px', fontWeight: 'bold' }}>
-            Description *
-          </label>
-          <textarea
-            id="description"
-            name="description"
-            value={formData.description}
-            onChange={handleChange}
-            required
-            maxLength={5000}
-            rows={5}
-            style={{ width: '100%', padding: '10px', boxSizing: 'border-box', border: fieldErrors.description ? '1px solid #dc3545' : '1px solid #ccc', borderRadius: '4px', resize: 'vertical' }}
-            disabled={status === 'submitting'}
-            placeholder="What happened? What were you trying to do?"
-          />
-          {fieldErrors.description && <div style={{ color: '#dc3545', fontSize: '14px', marginTop: '5px' }}>{fieldErrors.description}</div>}
-        </div>
+        <Field
+          label="Description"
+          name="description"
+          required
+          textarea
+          value={form.description}
+          error={errors.description}
+          onChange={onChange}
+          maxLength={LIMITS.description}
+          placeholder="What happened? What did you expect?"
+        />
 
-        <div>
-          <label htmlFor="reproSteps" style={{ display: 'block', marginBottom: '8px', fontWeight: 'bold' }}>
-            Reproduction Steps
-          </label>
-          <textarea
-            id="reproSteps"
-            name="reproSteps"
-            value={formData.reproSteps}
-            onChange={handleChange}
-            maxLength={5000}
-            rows={4}
-            style={{ width: '100%', padding: '10px', boxSizing: 'border-box', border: '1px solid #ccc', borderRadius: '4px', resize: 'vertical' }}
-            disabled={status === 'submitting'}
-            placeholder="Steps to reproduce the bug..."
-          />
-        </div>
+        <Field
+          label="Reproduction Steps"
+          name="reproSteps"
+          textarea
+          value={form.reproSteps}
+          error={errors.reproSteps}
+          onChange={onChange}
+          maxLength={LIMITS.reproSteps}
+          placeholder="1. Go to ...  2. Click ...  3. See error"
+          hint="Optional"
+        />
 
-        <div>
-          <label htmlFor="reporterEmail" style={{ display: 'block', marginBottom: '8px', fontWeight: 'bold' }}>
-            Reporter Email
-          </label>
-          <input
-            id="reporterEmail"
-            type="email"
-            name="reporterEmail"
-            value={formData.reporterEmail}
-            onChange={handleChange}
-            style={{ width: '100%', padding: '10px', boxSizing: 'border-box', border: fieldErrors.reporterEmail ? '1px solid #dc3545' : '1px solid #ccc', borderRadius: '4px' }}
-            disabled={status === 'submitting'}
-            placeholder="your@email.com"
-          />
-          {fieldErrors.reporterEmail && <div style={{ color: '#dc3545', fontSize: '14px', marginTop: '5px' }}>{fieldErrors.reporterEmail}</div>}
-        </div>
+        <Field
+          label="Your Email"
+          name="reporterEmail"
+          type="email"
+          value={form.reporterEmail}
+          error={errors.reporterEmail}
+          onChange={onChange}
+          placeholder="you@example.com"
+          hint="Optional — only used if we need to follow up"
+        />
 
-        <button
-          type="submit"
-          disabled={status === 'submitting'}
-          style={{
-            padding: '12px 20px',
-            backgroundColor: '#0070f3',
-            color: '#fff',
-            border: 'none',
-            borderRadius: '5px',
-            cursor: status === 'submitting' ? 'not-allowed' : 'pointer',
-            fontSize: '16px',
-            fontWeight: 'bold',
-            marginTop: '10px',
-            opacity: status === 'submitting' ? 0.7 : 1,
-            transition: 'background-color 0.2s'
-          }}
-        >
-          {status === 'submitting' ? 'Submitting...' : 'Submit Bug Report'}
+        <button type="submit" disabled={submitting}>
+          {submitting ? "Submitting…" : "Submit Bug Report"}
         </button>
       </form>
+    </main>
+  );
+}
+
+function Field({
+  label,
+  name,
+  value,
+  onChange,
+  error,
+  required,
+  textarea,
+  type = "text",
+  maxLength,
+  placeholder,
+  hint,
+}) {
+  const id = `f-${name}`;
+  const describedBy = error ? `${id}-err` : hint ? `${id}-hint` : undefined;
+  const commonProps = {
+    id,
+    name,
+    value,
+    onChange,
+    maxLength,
+    placeholder,
+    "aria-invalid": error ? "true" : undefined,
+    "aria-describedby": describedBy,
+    required: !!required,
+  };
+  return (
+    <div className={`field${error ? " invalid" : ""}`}>
+      <label htmlFor={id}>
+        {label}
+        {required && <span className="required" aria-hidden="true">*</span>}
+      </label>
+      {textarea ? (
+        <textarea rows={4} {...commonProps} />
+      ) : (
+        <input type={type} {...commonProps} />
+      )}
+      {hint && !error && (
+        <span id={`${id}-hint`} className="hint">
+          {hint}
+        </span>
+      )}
+      {error && (
+        <span id={`${id}-err`} className="field-error">
+          {error}
+        </span>
+      )}
     </div>
   );
 }
