@@ -21,3 +21,16 @@ to `TestingLibraryElementError` errors.
 Once everything worked locally, I prompted the agent with the "As a frontend developer, I want the 
 form to talk to our deployed API (not localhost) so that the deployed FE actually works end-to-end" 
 user story to ensure the app will work if we decide to deploy this implementation with Vercel. 
+
+
+## Charlene
+
+I started by setting up my context. In an empty directory in github I added a sprint-5.md, the openapi.yaml and schema.prisma from our backend, and a README.md. The sprint-5.md was text copied and pasted from the sprint-5 instructions, but trimmed down to necessary information only. In the README.md, I put the backend URL and an example of our POST /issues request body.
+
+Once the context was setup, I directed Claude Code Web to this directory and gave it the following prompt: "Read these files. Build the Bug Tracker FE described in the sprint-5.md document against the API in the spec. The backend-openapi.yaml and backend-schema.prisma files are from our team's backend API that has the issues routes."
+
+![img.png](charlene_example.png)
+
+I was satisfied with the bug tracker Claude first produced as long as it functioned properly. After testing network-error, validation-error, and success cases, I was completely satisfied with this form. It looks clean, the messages are clear, and it functions as intended. I especially like how the respective required field is outlined red when the user tries to submit a form without it. The only other prompts I made were to get help setting up the CORS, so I could test the form.
+
+If I did this over again, I don't know if I would have bothered with Claude Code. There was a lot of difficulty connecting it to github with the proper authentication and I only had four context files that would have been easy to copy-paste into the Claude browser. However, it was nice that whole frontend was setup for me and all I had to do was pull it from github onto my local machine. Without any Next.js experience, this may have been challenging to setup on my own. 
