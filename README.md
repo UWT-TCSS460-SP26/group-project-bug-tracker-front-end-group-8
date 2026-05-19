@@ -51,6 +51,8 @@ a single prompt I made sure the agent could find:
 I wanted to see how little prompting I could get away with if the context
 was solid. That mindset paid off. My prompts stayed short.
 
+![img.png](mansur_example.png)
+
 ### First prompt
 
 > Read `sprint-5.md` and `openapi.yaml`. Build a Next.js (App Router) app
