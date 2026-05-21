@@ -1,6 +1,14 @@
 # Deployed URL
 https://group-project-bug-tracker-front-end-mu.vercel.app/
 
+# Local Development
+
+```bash
+cp .env.local.example .env.local   # set NEXT_PUBLIC_API_URL
+npm install
+npm run dev                        # http://localhost:3000
+```
+
 # AI Workflows
 
 ## Christina
@@ -135,3 +143,48 @@ and the BE filed real issues (`#29` and `#30` in our database).
   Vercel, you do not own the BE CORS list. If I had said that on day one
   the agent would have reached for the rewrite immediately instead of me
   finding the broken preflight after deploy.
+
+## Caleb
+
+### How I used Claude / Claude Code
+
+I started by pointing Claude Code at the sprint requirements and the backend
+API context to understand what Sprint 5 actually called for. I did not write
+any code first — I wanted the AI to read before I assumed anything.
+
+Claude inspected the OpenAPI spec and identified the relevant endpoint:
+`POST /v1/issues`. It pulled the expected request body fields directly from
+the schema: `title` (required), `description` (required), `reproSteps`
+(optional), and `reporterEmail` (optional). That matched what the sprint doc
+described, so I had confidence in scope before writing a line.
+
+Claude also confirmed what Sprint 5 was *not*: no authentication, no OAuth
+flow, no admin dashboard, no triage UI. The deliverable was a single public
+form. That kept me from over-building.
+
+### The repo confusion I corrected
+
+My biggest mistake was starting in the wrong repository. I initially worked
+against the backend repo instead of the frontend repo, and spent time
+inspecting backend code that was not relevant to the frontend deliverable.
+Once I found the correct deployed frontend repo — the one you are reading now
+— I reoriented and was able to work with the actual app rather than guessing
+what had already been built.
+
+### What I avoided
+
+Because Claude clarified scope early, I did not add:
+* Authentication or session handling
+* OAuth providers
+* Admin dashboards or issue triage views
+* Any feature beyond the public bug report form
+
+### What I would do differently next time
+
+* Locate and verify the correct frontend repo before writing a single prompt.
+  It sounds obvious, but starting in the wrong repo wasted a session.
+* Ask the AI to inspect what is *already deployed* before assuming anything
+  needs to be built from scratch. A quick "read the live app and tell me what
+  exists" prompt would have saved time.
+* Include a short non-goals list in the first prompt so the model does not
+  drift toward auth or dashboard features on its own.

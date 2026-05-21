@@ -263,6 +263,11 @@ function Field({
       ) : (
         <input type={type} {...commonProps} />
       )}
+      {maxLength && (
+        <span className={`char-counter${value.length >= maxLength * 0.9 ? " near-limit" : ""}`}>
+          {value.length} / {maxLength}
+        </span>
+      )}
       {hint && !error && (
         <span id={`${id}-hint`} className="hint">
           {hint}
